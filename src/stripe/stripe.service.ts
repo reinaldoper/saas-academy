@@ -1,6 +1,5 @@
 import {
   Injectable,
-  Logger,
   NotAcceptableException,
   BadRequestException,
 } from '@nestjs/common';
@@ -11,18 +10,21 @@ const stripe = new Stripe(STRIP_SECRET_KEY, {
   apiVersion: '2025-09-30.clover',
 });
 
-const YOUR_DOMAIN = 'http://localhost:3000';
-const ENDPOINT_SECRET = 'whsec_12345';
+const YOUR_DOMAIN = process.env.YOUR_DOMAIN || '';
+const ENDPOINT_SECRET = process.env.ENDPOINT_SECRET || '';
 
 @Injectable()
 export class StripeService {
-  private readonly logger = new Logger(StripeService.name);
-
   async createCheckoutSession(lookupKey: string): Promise<string> {
     const prices = await stripe.prices.list({
       lookup_keys: [lookupKey],
       expand: ['data.product'],
     });
+    if (!prices.data.length) {
+      throw new NotAcceptableException(
+        'Preço não encontrado para lookupKey fornecida',
+      );
+    }
 
     const session = await stripe.checkout.sessions.create({
       billing_address_collection: 'auto',
@@ -34,7 +36,7 @@ export class StripeService {
       ],
       mode: 'subscription',
       success_url: `${YOUR_DOMAIN}/?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${YOUR_DOMAIN}?canceled=true`,
+      cancel_url: `${YOUR_DOMAIN}/?canceled=true`,
     });
 
     if (!session.url) {

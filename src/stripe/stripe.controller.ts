@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Headers } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Headers,
+  Req,
+  BadRequestException,
+} from '@nestjs/common';
 import { StripeService } from './stripe.service';
 
 @Controller('stripe')
@@ -21,14 +30,16 @@ export class StripeController {
 
   @Post('webhook')
   handleWebhook(
-    @Body() body: Buffer,
-    @Headers() headers: Record<string, string[]>,
+    @Req() req: Request,
+    @Headers('stripe-signature') signature: string | string[] | undefined,
   ) {
-    const signature = headers['stripe-signature'] as string | string[];
-    const event = this.stripeService.verifyWebhookSignature(body, signature);
+    const event = this.stripeService.verifyWebhookSignature(
+      req.body as unknown as Buffer,
+      signature,
+    );
     if (event) {
       return this.stripeService.handleWebhookEvent(event);
     }
-    return { statusCode: 400, body: 'Invalid signature' };
+    throw new BadRequestException('Invalid signature');
   }
 }
