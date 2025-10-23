@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               Int               @id @default(autoincrement())
+  name             String
+  email            String            @unique
+  password         String
+  role             Role              @default(MEMBER)
+  workouts         Workout[]
+  membershipPlan   MembershipPlan?   @relation(fields: [membershipPlanId], references: [id])
+  membershipPlanId Int?
+  payments         Payment[]
+  checkIns         CheckIn[]
+  reviews          Review[]
+  sessions         Session[]
+  createdAt        DateTime          @default(now())
+  academyId      Int
+  academy        Academy        @relation(fields: [academyId], references: [id])
+}
+
+model Workout {
+  id        Int      @id @default(autoincrement())
+  title     String
+  date      DateTime
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  exercises Exercise[]
+}
+
+model Academy {
+  id          Int       @id @default(autoincrement())
+  name        String
+  address     String?
+  email       String    @unique
+  phone       String?
+  users       User[]
+  trainers    Trainer[]
+  payments    Payment[]
+  membershipPlans MembershipPlan[]
+  createdAt   DateTime  @default(now())
+}
+
+
+  model Review {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  trainer    Trainer  @relation(fields: [trainerId], references: [id])
+  trainerId  Int
+  rating     Int  
+  comment    String?
+  createdAt  DateTime @default(now())
+}
+
+model CheckIn {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  timestamp DateTime @default(now())
+  location  String?
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  user          User     @relation(fields: [userId], references: [id])
+  userId        Int
+  amount        Float
+  status        PaymentStatus
+  stripeId      String   @unique
+  academy       Academy  @relation(fields: [academyId], references: [id])
+  academyId     Int
+  createdAt     DateTime @default(now())
+}
+
+model MembershipPlan {
+  id          Int      @id @default(autoincrement())
+  name        String
+  price       Float
+  duration    Int   
+  description String?
+  users       User[]
+  academy    Academy @relation(fields: [academyId], references: [id])
+  academyId  Int
+}
+
+model Exercise {
+  id         Int      @id @default(autoincrement())
+  name       String
+  repetitions Int
+  sets       Int
+  workout    Workout  @relation(fields: [workoutId], references: [id])
+  workoutId  Int
+}
+
+model Trainer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  bio       String?
+  email     String   @unique
+  sessions  Session[]
+  reviews   Review[]
+  academy   Academy @relation(fields: [academyId], references: [id])
+  academyId Int
+}
+
+model Session {
+  id         Int      @id @default(autoincrement())
+  date       DateTime
+  trainer    Trainer  @relation(fields: [trainerId], references: [id])
+  trainerId  Int
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+}
+
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+enum Role {
+  ADMIN
+  TRAINER
+  MEMBER
+}
