@@ -5,6 +5,7 @@ import {
   Delete,
   Param,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -39,10 +40,10 @@ export class UsersController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     if (user.role !== 'ADMIN') {
-      throw new Error('Only admins can delete users');
+      throw new BadRequestException('Only admins can delete users');
     }
     if (isNaN(Number(id))) {
-      throw new Error('Invalid user ID');
+      throw new BadRequestException('Invalid user ID');
     }
     return this.usersService.deleteUser(Number(id));
   }

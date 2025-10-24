@@ -19,8 +19,8 @@ Sistema completo de gerenciamento de academias, desenvolvido com **NestJS**, **N
 ## 📦 Instalação
 
 ```bash
-git clone https://github.com/reinaldoper/academia-saas-api.git
-cd academia-saas-api
+git clone https://github.com/reinaldoper/saas-academy.git
+cd saas-academy
 npm install
 ```
 

@@ -48,6 +48,10 @@ export class StripeService {
   async createPortalSession(sessionId: string): Promise<string> {
     const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId);
 
+    if (!checkoutSession.customer) {
+      throw new NotAcceptableException('Customer is null');
+    }
+
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: checkoutSession.customer as string,
       return_url: YOUR_DOMAIN,
