@@ -3,6 +3,7 @@ import {
   Post,
   Body,
   Delete,
+  Get,
   Param,
   UseGuards,
   BadRequestException,
@@ -29,6 +30,36 @@ export class UsersController {
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   async createUser(@Body() createUserDto: CreateUserDto) {
     return this.usersService.createUser(createUserDto);
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiResponse({
+    status: 200,
+    description: 'List of users retrieved successfully.',
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  async getAllUsers(@CurrentUser() user: AuthenticatedUser) {
+    if (user.role !== 'ADMIN') {
+      throw new BadRequestException('Only admins can view all users');
+    }
+    return this.usersService.getAllUsers();
+  }
+
+  @Get('userid')
+  @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 200, description: 'User retrieved successfully.' })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  async getUserById(@CurrentUser() user: AuthenticatedUser) {
+    return this.usersService.getUserById(Number(user.userId));
+  }
+
+  @Get('email')
+  @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 200, description: 'User retrieved successfully.' })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  async getUserByEmail(@CurrentUser() user: AuthenticatedUser) {
+    return this.usersService.getUserByEmail(user.email);
   }
 
   @Delete(':id')

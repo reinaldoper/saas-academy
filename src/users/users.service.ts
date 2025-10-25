@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Role, MembershipPlan, PaymentStatus } from '@prisma/client';
@@ -91,5 +91,26 @@ export class UsersService {
     }
     await this.prisma.user.delete({ where: { id } });
     return { message: 'User deleted successfully' };
+  }
+
+  async getUserByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    return user;
+  }
+
+  async getUserById(id: number) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    return user;
+  }
+
+  async getAllUsers() {
+    const users = await this.prisma.user.findMany();
+    return users;
   }
 }
